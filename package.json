@@ -1,0 +1,17 @@
+{
+   "name": "autoiniciativa",
+   "version": "1.0.0",
+   "main": "index.js",
+   "private": true,
+   "workspaces": {
+      "packages": [
+         "packages/*",
+         "packages/shared/*"
+      ]
+   },
+   "author": "Erico-Muller <ericomuller0@gmail.com>",
+   "license": "MIT",
+   "devDependencies": {
+      "typescript": "^4.3.5"
+   }
+}
