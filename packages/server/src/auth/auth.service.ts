@@ -14,6 +14,7 @@ export class AuthService {
          sub: character.id,
          name: character.name,
          mod: character.mod,
+         role: character.role,
       }
 
       return {

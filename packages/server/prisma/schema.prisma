@@ -7,10 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum role {
+  CHARACTER
+  DM
+}
+
 model character {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  name String @unique
-  mod  Int
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  name  String @unique
+  mod   Int
+  role role @default(CHARACTER)
 }
 
 model initiative {

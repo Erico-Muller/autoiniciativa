@@ -5,9 +5,11 @@ import {
    Param,
    Body,
    Delete,
+   Request,
    HttpCode,
    HttpException,
    HttpStatus,
+   UseGuards,
 } from '@nestjs/common'
 
 import { CharacterService } from './character.service'
@@ -16,7 +18,12 @@ import { character as Character } from '@prisma/client'
 
 import { FindOneCharacterDto } from './dto/find-one-character.dto'
 import { CreateCharacterDto } from './dto/create-character.dto'
-import { DeleteCharacterDto } from './dto/delete-character.dto'
+
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+
+import { RolesGuard } from '../auth/guards/roles.guard'
+import { Roles } from '../auth/decorators/roles.decorator'
+import { role as Role } from '@prisma/client'
 
 @Controller('character')
 export class CharacterController {
@@ -63,13 +70,13 @@ export class CharacterController {
       }
    }
 
-   @Delete(':id')
+   @Delete()
    @HttpCode(204)
-   async remove(
-      @Param() deleteCharacterDto: DeleteCharacterDto,
-   ): Promise<void> {
+   @Roles(Role.CHARACTER)
+   @UseGuards(JwtAuthGuard, RolesGuard)
+   async remove(@Request() req): Promise<void> {
       try {
-         return await this.characterService.remove(deleteCharacterDto)
+         return await this.characterService.remove({ id: req.user.id })
       } catch (err) {
          throw new HttpException(
             {
