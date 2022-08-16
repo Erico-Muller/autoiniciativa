@@ -18,6 +18,7 @@ import { character as Character } from '@prisma/client'
 
 import { FindOneCharacterDto } from './dto/find-one-character.dto'
 import { CreateCharacterDto } from './dto/create-character.dto'
+import { LoginDmDto } from './dto/login-dm.dto'
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 
@@ -72,7 +73,7 @@ export class CharacterController {
 
    @Delete()
    @HttpCode(204)
-   @Roles(Role.CHARACTER)
+   @Roles(Role.CHARACTER, Role.DM)
    @UseGuards(JwtAuthGuard, RolesGuard)
    async remove(@Request() req): Promise<void> {
       try {
@@ -85,6 +86,22 @@ export class CharacterController {
                error: 'Not Found',
             },
             HttpStatus.NOT_FOUND,
+         )
+      }
+   }
+
+   @Post('login_dm')
+   async loginDM(@Body() loginDmDto: LoginDmDto): Promise<Character> {
+      try {
+         return await this.characterService.loginDM(loginDmDto)
+      } catch (err) {
+         throw new HttpException(
+            {
+               statusCode: HttpStatus.FORBIDDEN,
+               message: [err],
+               error: 'Forbidden',
+            },
+            HttpStatus.FORBIDDEN,
          )
       }
    }

@@ -3,10 +3,12 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../database/prisma.service'
 
 import { character as Character } from '@prisma/client'
+import { role as Role } from '@prisma/client'
 
 import { FindOneCharacterDto } from './dto/find-one-character.dto'
 import { CreateCharacterDto } from './dto/create-character.dto'
 import { DeleteCharacterDto } from './dto/delete-character.dto'
+import { LoginDmDto } from './dto/login-dm.dto'
 
 @Injectable()
 export class CharacterService {
@@ -46,6 +48,20 @@ export class CharacterService {
          })
       } catch (err) {
          throw 'character does not exists'
+      }
+   }
+
+   async loginDM({ password }: LoginDmDto): Promise<Character> {
+      if (password === process.env.DM_PASS) {
+         return await this.prismaService.character.create({
+            data: {
+               name: 'dm',
+               mod: 0,
+               role: Role.DM,
+            },
+         })
+      } else {
+         throw 'wrong password'
       }
    }
 }
