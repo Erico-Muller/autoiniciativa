@@ -2,6 +2,7 @@ import {
    Controller,
    Get,
    Post,
+   Res,
    Param,
    Body,
    Delete,
@@ -13,6 +14,7 @@ import {
 } from '@nestjs/common'
 
 import { CharacterService } from './character.service'
+import { AuthService } from '../auth/auth.service'
 
 import { character as Character } from '@prisma/client'
 
@@ -28,7 +30,10 @@ import { role as Role } from '@prisma/client'
 
 @Controller('character')
 export class CharacterController {
-   constructor(private readonly characterService: CharacterService) {}
+   constructor(
+      private readonly characterService: CharacterService,
+      private readonly authService: AuthService,
+   ) {}
 
    @Get()
    async findAll(): Promise<Character[]> {
@@ -56,9 +61,18 @@ export class CharacterController {
    @Post()
    async create(
       @Body() createCharacterDto: CreateCharacterDto,
+      @Res({ passthrough: true }) response,
    ): Promise<Character> {
       try {
-         return await this.characterService.create(createCharacterDto)
+         const character = await this.characterService.create(
+            createCharacterDto,
+         )
+
+         const { character_token: token } =
+            await this.authService.generateCharacterToken(character)
+         response.cookie('jwt', token, { httpOnly: true })
+
+         return character
       } catch (err) {
          throw new HttpException(
             {
@@ -91,9 +105,18 @@ export class CharacterController {
    }
 
    @Post('login_dm')
-   async loginDM(@Body() loginDmDto: LoginDmDto): Promise<Character> {
+   async loginDM(
+      @Body() loginDmDto: LoginDmDto,
+      @Res({ passthrough: true }) response,
+   ): Promise<Character> {
       try {
-         return await this.characterService.loginDM(loginDmDto)
+         const dm = await this.characterService.loginDM(loginDmDto)
+
+         const { character_token: token } =
+            await this.authService.generateCharacterToken(dm)
+         response.cookie('jwt', token, { httpOnly: true })
+
+         return dm
       } catch (err) {
          throw new HttpException(
             {
