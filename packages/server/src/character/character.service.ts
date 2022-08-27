@@ -33,6 +33,12 @@ export class CharacterService {
       if (mod > 20) throw 'mod exceeds the max'
       if (mod < -10) throw 'mod is too low'
 
+      const playerExists = await this.prismaService.character.findUnique({
+         where: { name },
+      })
+
+      if (playerExists) throw 'character already exists'
+
       return await this.prismaService.character.create({
          data: {
             name,
