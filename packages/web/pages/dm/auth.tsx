@@ -2,7 +2,11 @@ import { useRef, FormEvent } from 'react'
 
 import Head from 'next/head'
 import Link from 'next/link'
+import Router from 'next/router'
 import type { NextPage } from 'next'
+
+import { useMutation } from '@tanstack/react-query'
+import axios from 'axios'
 
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -10,13 +14,25 @@ import 'react-toastify/dist/ReactToastify.css'
 const DMAuth: NextPage = () => {
    const inputPassRef = useRef<HTMLInputElement>(null)
 
-   function handleSubmit(event: FormEvent) {
-      event.preventDefault()
+   const mutation = useMutation(async () => {
+      const password = inputPassRef.current?.value
 
-      if (!inputPassRef.current?.value)
+      if (!password)
          return emitError('Insira a senha do mestre')
 
-      console.log(inputPassRef.current.value)
+      try { 
+         await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/character/login_dm`, { password }, {
+            withCredentials: true
+         })
+         Router.push('/dm')
+      } catch (err) {
+         emitError('Senha incorreta!')
+      }
+   })
+
+   function handleSubmit(event: FormEvent) {
+      event.preventDefault()
+      mutation.mutate()
    }
 
    function emitError(message: string) {
