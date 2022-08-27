@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/react-query": "^4.2.1",
+    "axios": "^0.27.2",
     "next": "12.2.3",
     "phosphor-react": "^1.4.1",
     "react": "18.2.0",

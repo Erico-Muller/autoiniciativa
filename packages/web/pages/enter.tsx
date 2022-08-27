@@ -2,7 +2,11 @@ import { useState, useRef, FormEvent } from 'react'
 
 import Head from 'next/head'
 import Link from 'next/link'
+import Router from 'next/router'
 import type { NextPage } from 'next'
+
+import { useMutation } from '@tanstack/react-query'
+import axios from 'axios'
 
 import { Plus, Minus } from 'phosphor-react'
 
@@ -11,15 +15,13 @@ import 'react-toastify/dist/ReactToastify.css'
 
 const Enter: NextPage = () => {
    const inputNameRef = useRef<HTMLInputElement>(null)
-   const [mod, setMod] = useState(0)
+   const [mod, setMod] = useState<number | null>(null)
    const [modSelected, setModSelected] = useState(false)
 
-   function handleSubmit(event: FormEvent) {
-      event.preventDefault()
-
+   const mutation = useMutation(async () => {
       if (!inputNameRef.current?.value)
          return emitError('Insira o nome do seu personagem')
-      else if (!mod)
+      else if (mod === null)
          return emitError('Insira o modificador do seu personagem')
 
       const player = {
@@ -27,22 +29,36 @@ const Enter: NextPage = () => {
          mod
       }
 
-      console.log(player)
+      try { 
+         await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/character`, player, {
+            withCredentials: true
+         })
+         Router.push('/')
+      } catch (err) {
+         emitError('Personagem já existe!')
+      }
+   })
+
+   function handleSubmit(event: FormEvent) {
+      event.preventDefault()
+      mutation.mutate()
    }
 
    function handleIncrementMod() {
       if (!modSelected) {
+         setMod(0)
          setModSelected(true)
-      } else if (mod < 20) {
-         setMod(mod + 1)
+      } else if (mod! < 20) {
+         setMod(mod! + 1)
       }
    }
 
    function handleDecrementMod() {
       if (!modSelected) {
+         setMod(0)
          setModSelected(true)
-      } else if (mod > -10) {
-         setMod(mod - 1)
+      } else if (mod! > -10) {
+         setMod(mod! - 1)
       }
    }
 
@@ -66,13 +82,13 @@ const Enter: NextPage = () => {
          <div className="flex flex-col justify-center items-center min-h-screen py-8">
             <header>
                <h1 className="text-5xl text-center">
-                  Bem-vindo
+                  Bem-vindo!
                </h1>
             </header>
 
             <form onSubmit={handleSubmit} className="w-full h-64 sm:max-w-min sm:max-h-min m-8 p-8 flex flex-col justify-center items-center gap-8 bg-slate-700 sm:rounded-xl">
                <input
-                  className="p-1 text-lg text-center text-gray-800 bg-gray-200 rounded-xl hover:scale-110 focus:outline-none focus:ring-4 focus:ring-violet-500 focus:ring-opacity-50 transition ease-in-out duration-200"
+                  className="p-1 text-lg text-center text-gray-800 bg-gray-200 rounded-xl hover:scale-110 focus:scale-110 focus:outline-none focus:ring-4 focus:ring-violet-500 focus:ring-opacity-50 transition ease-in-out duration-200"
                   type="text"
                   placeholder="Nome"
                   ref={inputNameRef}
@@ -92,7 +108,7 @@ const Enter: NextPage = () => {
                      className="w-14 p-1 text-xl text-center text-gray-800 bg-gray-200 rounded-xl focus:outline-none"
                      type="text"
                      placeholder="Mod"
-                     value={modSelected?mod:''}
+                     value={modSelected?mod!:''}
                      disabled
                   />
                   <button
