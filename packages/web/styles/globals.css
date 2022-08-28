@@ -11,6 +11,14 @@ body {
    -webkit-font-smoothing: antialiased;
 }
 
+body::-webkit-scrollbar {
+   @apply w-2;
+}
+
+body::-webkit-scrollbar-thumb {
+   @apply bg-slate-700 hover:bg-slate-600 rounded-full;
+}
+
 /* React Toastify */
 :root {
    --toastify-color-light: #374151 !important;
