@@ -70,7 +70,7 @@ export class CharacterController {
 
          const { character_token: token } =
             await this.authService.generateCharacterToken(character)
-         response.cookie('jwt', token, { httpOnly: true, secure: true })
+         response.cookie('jwt', token, { secure: true })
 
          return character
       } catch (err) {
@@ -114,7 +114,7 @@ export class CharacterController {
 
          const { character_token: token } =
             await this.authService.generateCharacterToken(dm)
-         response.cookie('jwt', token, { httpOnly: true, secure: true })
+         response.cookie('jwt', token, { secure: true })
 
          return dm
       } catch (err) {
