@@ -1,14 +1,169 @@
+import { useState, useEffect, FormEvent } from 'react'
+
 import Head from 'next/head'
+import Router from 'next/router'
 import type { NextPage } from 'next'
 
+import Initiative from '../components/Initiative'
+
+import { useMutation } from '@tanstack/react-query'
+import axios from 'axios'
+
+import { useCookies } from 'react-cookie'
+
+import { toast, ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+
+interface Initiative {
+   characterName: string
+   initiative: number
+   isCritical: boolean
+   isTurn: boolean
+}
+
 const Home: NextPage = () => {
+   const [cookies, setCookie, removeCookie] = useCookies(['jwt'])
+   const [rolled, setRolled] = useState(false)
+   const [initiatives, setInitiatives] = useState<Initiative[]>([
+      {
+         characterName: 'Kanonit',
+         initiative: 21,
+         isCritical: false,
+         isTurn: false
+      }, {
+         characterName: 'Dalibor',
+         initiative: 12,
+         isCritical: false,
+         isTurn: true
+      }, {
+         characterName: 'Jahaar',
+         initiative: 20,
+         isCritical: true,
+         isTurn: false
+      }, {
+         characterName: 'Toru',
+         initiative: 16,
+         isCritical: false,
+         isTurn: false
+      }, {
+         characterName: 'Altraz',
+         initiative: 7,
+         isCritical: false,
+         isTurn: false
+      },
+   ])
+
+   const mutation = useMutation(async () => {
+      try {       
+         await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE_URL}/character`, {
+            headers: {
+               'Authorization': `Bearer ${cookies.jwt}`
+            }
+         })
+         
+         removeCookie('jwt')
+         Router.push('/enter')
+      } catch (err) {
+         emitError('Algum erro ocorreu!')
+      }
+   })
+
+   function handleExit(event: FormEvent) {
+      event.preventDefault()
+      mutation.mutate()
+   }
+
+   function sortInitiatives() {
+      const sortedInitiatives = initiatives.sort((x, y) => y.initiative - x.initiative)
+
+      const normalInitiatives = []
+      const criticalInitiatives = []
+
+      for (let i = 0; i < sortedInitiatives.length; i++) {
+         if (sortedInitiatives[i].isCritical) {
+            criticalInitiatives.push(sortedInitiatives[i])
+         } else {
+            normalInitiatives.push(sortedInitiatives[i])
+         }
+      }
+
+      const newInitiatives = criticalInitiatives.concat(normalInitiatives)
+
+      setInitiatives(newInitiatives)
+   }
+
+   function emitError(message: string) {
+      toast.error(message, {
+         position: 'bottom-right',
+         autoClose: 2000,
+         hideProgressBar: true,
+         closeOnClick: true,
+         pauseOnHover: true,
+         draggable: true
+      })
+   }
+
+   useEffect(() => {
+      sortInitiatives()
+   }, [])
+
    return (
       <>
          <Head>
-            <title>Hello World!</title>
+            <title>Iniciativa</title>
          </Head>
 
-         <h1>Hello World!</h1>
+         <div className="flex flex-col justify-center items-center min-h-screen pt-14 pb-8">
+            <button onClick={handleExit}>
+               <a className="px-2 py-1 absolute sm:fixed top-2 sm:top-4 right-2 sm:right-4 text-base sm:text-lg border-2 border-gray-200 rounded-lg hover:bg-red-500 hover:border-red-500 transition ease-linear duration-150">
+                  Sair
+               </a>
+            </button>
+
+            <header>
+               <h1 className="text-5xl text-center">
+                  Iniciativas
+               </h1>
+            </header>
+
+            <div className="w-24 h-24 mt-10 flex justify-center items-center bg-slate-700 rounded-full">
+               <button
+                  className={`${rolled && 'animate-roll'}`}
+                  onClick={() => setRolled(true)}
+                  onAnimationEnd={() => setRolled(false)}
+               >
+                  <img src="/img/dice.png" alt="roll dice" />
+               </button>
+            </div>
+
+            <main className={`${initiatives.length == 0?'hidden':''} w-full sm:w-96 sm:max-h-min m-8 p-8 flex flex-col justify-center items-center gap-8 bg-slate-700 sm:rounded-xl`}>
+               {
+                  initiatives.map(initiative => (
+                     <Initiative key={initiative.characterName} initiative={initiative.initiative} isTurn={initiative.isTurn} isCritical={initiative.isCritical}>
+                        {initiative.characterName}
+                     </Initiative>
+                  ))
+               }
+            </main>
+
+            <footer className="w-full sm:pt-3 sm:pb-6 sm:fixed sm:bottom-0 text-center sm:bg-gray-800">
+               <p className="text-xs">
+                  Created by Erikinho
+               </p>
+            </footer>
+         </div>
+
+         <ToastContainer
+            position='bottom-right'
+            autoClose={2000}
+            hideProgressBar
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+         />
       </>
    )
 }
