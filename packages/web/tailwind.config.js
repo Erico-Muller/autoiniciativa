@@ -14,10 +14,21 @@ module.exports = {
           "100%": {
             transform: "rotate(720deg)"
           }
+        },
+        emerge: {
+          "0%": {
+            transform: "translate(-50%, -30%)",
+            opacity: 0
+          },
+          "100%": {
+            transform: "translate(-50%, -50%)",
+            opacity: 100
+          }          
         }
       },
       animation: {
-        "roll": "roll 600ms ease-in-out"
+        "roll": "roll 600ms ease-in-out",
+        "emerge": "emerge 300ms ease-in-out"
       }
     }
   },
