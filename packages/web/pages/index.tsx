@@ -139,7 +139,7 @@ const Home: NextPage = () => {
             <main className={`${initiatives.length == 0?'hidden':''} w-full sm:w-96 sm:max-h-min m-8 p-8 flex flex-col justify-center items-center gap-8 bg-slate-700 sm:rounded-xl`}>
                {
                   initiatives.map(initiative => (
-                     <Initiative key={initiative.characterName} initiative={initiative.initiative} isTurn={initiative.isTurn} isCritical={initiative.isCritical}>
+                     <Initiative variant='default' key={initiative.characterName} initiative={initiative.initiative} isTurn={initiative.isTurn} isCritical={initiative.isCritical}>
                         {initiative.characterName}
                      </Initiative>
                   ))

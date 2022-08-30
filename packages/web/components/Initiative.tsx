@@ -1,4 +1,5 @@
 interface Props {
+   variant: 'default' | 'dm'
    children: string
    initiative: number
    isCritical: boolean
