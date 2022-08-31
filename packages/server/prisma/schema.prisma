@@ -13,15 +13,16 @@ enum role {
 }
 
 model character {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  name  String @unique
-  mod   Int
-  role role @default(CHARACTER)
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @unique
+  mod  Int
+  role role   @default(CHARACTER)
 }
 
 model initiative {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  initiative  Int
-  is_critical Boolean
-  characterId String  @unique
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  characterName String  @unique
+  initiative    Int
+  is_critical   Boolean
+  is_turn       Boolean
 }
