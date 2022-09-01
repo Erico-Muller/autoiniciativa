@@ -1,10 +1,12 @@
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, useMemo, FormEvent } from 'react'
 
 import Head from 'next/head'
 import Router from 'next/router'
 import type { NextPage } from 'next'
 
 import Initiative from '../components/Initiative'
+
+import io, { Socket } from 'socket.io-client'
 
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
@@ -22,36 +24,11 @@ interface Initiative {
 }
 
 const Home: NextPage = () => {
+   const socket = useMemo<Socket>(() => io(process.env.NEXT_PUBLIC_API_BASE_URL!), [])
+
    const [cookies, setCookie, removeCookie] = useCookies(['jwt'])
    const [rolled, setRolled] = useState(false)
-   const [initiatives, setInitiatives] = useState<Initiative[]>([
-      {
-         characterName: 'Kanonit',
-         initiative: 21,
-         isCritical: false,
-         isTurn: false
-      }, {
-         characterName: 'Dalibor',
-         initiative: 12,
-         isCritical: false,
-         isTurn: true
-      }, {
-         characterName: 'Jahaar',
-         initiative: 20,
-         isCritical: true,
-         isTurn: false
-      }, {
-         characterName: 'Toru',
-         initiative: 16,
-         isCritical: false,
-         isTurn: false
-      }, {
-         characterName: 'Altraz',
-         initiative: 7,
-         isCritical: false,
-         isTurn: false
-      },
-   ])
+   const [initiatives, setInitiatives] = useState<Initiative[]>([])
 
    const mutation = useMutation(async () => {
       try {       
@@ -106,6 +83,12 @@ const Home: NextPage = () => {
    useEffect(() => {
       sortInitiatives()
    }, [])
+
+   useEffect(() => {
+      socket.on('connect', () => {
+         console.log('connection established')
+      })
+   }, [socket])
 
    return (
       <>
