@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, useMemo, FormEvent } from 'react'
 
 import Head from 'next/head'
 import Router from 'next/router'
@@ -6,6 +6,8 @@ import type { NextPage } from 'next'
 
 import Initiative from '../../components/Initiative'
 import DmRoller from '../../components/DmRoller'
+
+import io, { Socket } from 'socket.io-client'
 
 import { useMutation } from '@tanstack/react-query'
 import axios from 'axios'
@@ -20,43 +22,17 @@ import 'react-toastify/dist/ReactToastify.css'
 interface Initiative {
    characterName: string
    initiative: number
-   isCritical: boolean
-   isTurn: boolean
+   is_critical: boolean
+   is_turn: boolean
 }
 
 const DM: NextPage = () => {
+   const socket = useMemo<Socket>(() => io(process.env.NEXT_PUBLIC_API_BASE_URL!), [])
+   
    const [cookies, setCookie, removeCookie] = useCookies(['jwt'])
-   const [rolled, setRolled] = useState(false)
-   const [initiatives, setInitiatives] = useState<Initiative[]>([
-      {
-         characterName: 'Kanonit',
-         initiative: 21,
-         isCritical: false,
-         isTurn: false
-      }, {
-         characterName: 'Dalibor',
-         initiative: 12,
-         isCritical: false,
-         isTurn: true
-      }, {
-         characterName: 'Jahaar',
-         initiative: 20,
-         isCritical: true,
-         isTurn: false
-      }, {
-         characterName: 'Toru',
-         initiative: 16,
-         isCritical: false,
-         isTurn: false
-      }, {
-         characterName: 'Altraz',
-         initiative: 7,
-         isCritical: false,
-         isTurn: false
-      },
-   ])
+   const [initiatives, setInitiatives] = useState<Initiative[]>([])
 
-   const mutation = useMutation(async () => {
+   const exitMutation = useMutation(async () => {
       try {       
          await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE_URL}/character`, {
             headers: {
@@ -73,17 +49,18 @@ const DM: NextPage = () => {
 
    function handleExit(event: FormEvent) {
       event.preventDefault()
-      mutation.mutate()
+      exitMutation.mutate()
    }
 
-   function sortInitiatives() {
+   function sortInitiatives(initiatives: Initiative[]) {
       const sortedInitiatives = initiatives.sort((x, y) => y.initiative - x.initiative)
-
+      
       const normalInitiatives = []
       const criticalInitiatives = []
-
+      
       for (let i = 0; i < sortedInitiatives.length; i++) {
-         if (sortedInitiatives[i].isCritical) {
+         console.log(sortedInitiatives[i])
+         if (sortedInitiatives[i].is_critical) {
             criticalInitiatives.push(sortedInitiatives[i])
          } else {
             normalInitiatives.push(sortedInitiatives[i])
@@ -92,7 +69,7 @@ const DM: NextPage = () => {
 
       const newInitiatives = criticalInitiatives.concat(normalInitiatives)
 
-      setInitiatives(newInitiatives)
+      return newInitiatives
    }
 
    function emitError(message: string) {
@@ -107,8 +84,15 @@ const DM: NextPage = () => {
    }
 
    useEffect(() => {
-      sortInitiatives()
-   }, [])
+      socket.on('connect', () => {
+         console.log('connection established')
+      })
+
+      socket.on('receive_initiatives', (receivedInitiatives: Initiative[]) => {
+         const newInitiatives = sortInitiatives(receivedInitiatives)
+         setInitiatives(newInitiatives)
+      })
+   }, [socket])
 
    return (
       <>
@@ -135,7 +119,7 @@ const DM: NextPage = () => {
                      <span className="text-lg">Aguardando iniciativas...</span> :
 
                      initiatives.map(initiative => (
-                        <Initiative variant='dm' key={initiative.characterName} initiative={initiative.initiative} isTurn={initiative.isTurn} isCritical={initiative.isCritical}>
+                        <Initiative variant='dm' key={initiative.characterName} initiative={initiative.initiative} isTurn={initiative.is_turn} isCritical={initiative.is_critical}>
                            {initiative.characterName}
                         </Initiative>
                      ))
