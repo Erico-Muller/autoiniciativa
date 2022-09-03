@@ -19,8 +19,8 @@ import 'react-toastify/dist/ReactToastify.css'
 interface Initiative {
    characterName: string
    initiative: number
-   isCritical: boolean
-   isTurn: boolean
+   is_critical: boolean
+   is_turn: boolean
 }
 
 const Home: NextPage = () => {
@@ -69,7 +69,7 @@ const Home: NextPage = () => {
       const criticalInitiatives = []
 
       for (let i = 0; i < sortedInitiatives.length; i++) {
-         if (sortedInitiatives[i].isCritical) {
+         if (sortedInitiatives[i].is_critical) {
             criticalInitiatives.push(sortedInitiatives[i])
          } else {
             normalInitiatives.push(sortedInitiatives[i])
@@ -78,7 +78,7 @@ const Home: NextPage = () => {
 
       const newInitiatives = criticalInitiatives.concat(normalInitiatives)
 
-      setInitiatives(newInitiatives)
+      return newInitiatives
    }
 
    function emitError(message: string) {
@@ -97,8 +97,9 @@ const Home: NextPage = () => {
          console.log('connection established')
       })
 
-      socket.on('receive_initiatives', receivedInitiatives => {
-         sortInitiatives(receivedInitiatives)
+      socket.on('receive_initiatives', (receivedInitiatives: Initiative[]) => {
+         const newInitiatives = sortInitiatives(receivedInitiatives)
+         setInitiatives(newInitiatives)
       })
    }, [socket])
 
@@ -134,7 +135,7 @@ const Home: NextPage = () => {
             <main className={`${initiatives.length == 0?'hidden':''} w-full sm:w-96 sm:max-h-min m-8 p-8 flex flex-col justify-center items-center gap-8 bg-slate-700 sm:rounded-xl`}>
                {
                   initiatives.map(initiative => (
-                     <Initiative variant='default' key={initiative.characterName} initiative={initiative.initiative} isTurn={initiative.isTurn} isCritical={initiative.isCritical}>
+                     <Initiative variant='default' key={initiative.characterName} initiative={initiative.initiative} isTurn={initiative.is_turn} isCritical={initiative.is_critical}>
                         {initiative.characterName}
                      </Initiative>
                   ))
