@@ -30,7 +30,7 @@ const Home: NextPage = () => {
    const [rolled, setRolled] = useState(false)
    const [initiatives, setInitiatives] = useState<Initiative[]>([])
 
-   const mutation = useMutation(async () => {
+   const exitMutation = useMutation(async () => {
       try {       
          await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE_URL}/character`, {
             headers: {
@@ -47,10 +47,22 @@ const Home: NextPage = () => {
 
    function handleExit(event: FormEvent) {
       event.preventDefault()
-      mutation.mutate()
+      exitMutation.mutate()
    }
 
-   function sortInitiatives() {
+   function handleRoll() {
+      function rollDice() {
+         const min = Math.ceil(21)
+         const max = Math.floor(1)
+   
+         return Math.floor(Math.random() * (max - min)) + min
+      }
+
+      setRolled(true)
+      socket.emit('roll', { token: cookies.jwt, initiative: rollDice() })
+   }
+
+   function sortInitiatives(initiatives: Initiative[]) {
       const sortedInitiatives = initiatives.sort((x, y) => y.initiative - x.initiative)
 
       const normalInitiatives = []
@@ -81,12 +93,12 @@ const Home: NextPage = () => {
    }
 
    useEffect(() => {
-      sortInitiatives()
-   }, [])
-
-   useEffect(() => {
       socket.on('connect', () => {
          console.log('connection established')
+      })
+
+      socket.on('receive_initiatives', receivedInitiatives => {
+         sortInitiatives(receivedInitiatives)
       })
    }, [socket])
 
@@ -112,8 +124,8 @@ const Home: NextPage = () => {
             <div className="w-24 h-24 mt-10 flex justify-center items-center bg-slate-700 rounded-full">
                <button
                   className={`${rolled && 'animate-roll'}`}
-                  onClick={() => setRolled(true)}
-                  onAnimationEnd={() => setRolled(false)}
+                  onClick={() => handleRoll()}
+                  disabled={rolled}
                >
                   <img src="/img/dice.png" alt="roll dice" />
                </button>
