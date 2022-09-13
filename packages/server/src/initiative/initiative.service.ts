@@ -32,4 +32,28 @@ export class InitiativeService {
          },
       })
    }
+
+   async pass(characterName: string): Promise<void> {
+      await this.prismaService.initiative.updateMany({
+         where: {
+            is_turn: true,
+         },
+         data: {
+            is_turn: false,
+         },
+      })
+
+      await this.prismaService.initiative.update({
+         where: {
+            characterName,
+         },
+         data: {
+            is_turn: true,
+         },
+      })
+   }
+
+   async clear(): Promise<void> {
+      await this.prismaService.initiative.deleteMany()
+   }
 }

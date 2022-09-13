@@ -3,12 +3,14 @@ import {
    OnGatewayConnection,
    WebSocketServer,
    SubscribeMessage,
-   ConnectedSocket,
    MessageBody,
 } from '@nestjs/websockets'
 import { Server, Socket } from 'socket.io'
 
 import { RollDto } from './dto/roll.dto'
+import { PassDto } from './dto/pass.dto'
+import { ClearDto } from './dto/clear.dto'
+
 import { character as Character, role as Role } from '@prisma/client'
 
 import { InitiativeService } from './initiative.service'
@@ -45,10 +47,7 @@ export class InitiativeGateway implements OnGatewayConnection {
    }
 
    @SubscribeMessage('roll')
-   async handleRequestInitiatives(
-      @MessageBody() rollDto: RollDto,
-      @ConnectedSocket() client: Socket,
-   ) {
+   async handleRequestInitiatives(@MessageBody() rollDto: RollDto) {
       const jwtDecodedData = this.jwtService.decode(rollDto.token)
       const jwtDecodedObject = jwtDecodedData as JwtData
 
@@ -60,6 +59,34 @@ export class InitiativeGateway implements OnGatewayConnection {
       }
 
       await this.initiativeService.create(character, rollDto.initiative)
+
+      this.server
+         .to('game')
+         .emit('receive_initiatives', await this.initiativeService.findAll())
+   }
+
+   @SubscribeMessage('pass')
+   async handlePassInitiative(@MessageBody() passDto: PassDto) {
+      const jwtDecodedData = this.jwtService.decode(passDto.token)
+      const jwtDecodedObject = jwtDecodedData as JwtData
+
+      if (jwtDecodedObject.role !== Role.DM) return
+
+      await this.initiativeService.pass(passDto.characterName)
+
+      this.server
+         .to('game')
+         .emit('receive_initiatives', await this.initiativeService.findAll())
+   }
+
+   @SubscribeMessage('clear')
+   async handleClearInitiatives(@MessageBody() clearDto: ClearDto) {
+      const jwtDecodedData = this.jwtService.decode(clearDto.token)
+      const jwtDecodedObject = jwtDecodedData as JwtData
+
+      if (jwtDecodedObject.role !== Role.DM) return
+
+      await this.initiativeService.clear()
 
       this.server
          .to('game')
