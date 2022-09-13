@@ -80,6 +80,11 @@ const DM: NextPage = () => {
             characterName: initiatives[currentTurnCharacter].characterName
          }
       )
+
+      const newInitiatives = [...initiatives]
+      newInitiatives[newInitiatives[currentTurnCharacter-1] ? currentTurnCharacter-1 : newInitiatives.length-1].is_turn = false
+      newInitiatives[currentTurnCharacter].is_turn = true
+      setInitiatives(newInitiatives)
    }
       
 
