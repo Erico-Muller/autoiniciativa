@@ -31,6 +31,7 @@ const DM: NextPage = () => {
    
    const [cookies, setCookie, removeCookie] = useCookies(['jwt'])
    const [initiatives, setInitiatives] = useState<Initiative[]>([])
+   const [currentTurnCharacter, setCurrentTurnCharacter] = useState(0)
 
    const exitMutation = useMutation(async () => {
       try {       
@@ -59,7 +60,6 @@ const DM: NextPage = () => {
       const criticalInitiatives = []
       
       for (let i = 0; i < sortedInitiatives.length; i++) {
-         console.log(sortedInitiatives[i])
          if (sortedInitiatives[i].is_critical) {
             criticalInitiatives.push(sortedInitiatives[i])
          } else {
@@ -72,16 +72,16 @@ const DM: NextPage = () => {
       return newInitiatives
    }
 
-   function emitError(message: string) {
-      toast.error(message, {
-         position: 'bottom-right',
-         autoClose: 2000,
-         hideProgressBar: true,
-         closeOnClick: true,
-         pauseOnHover: true,
-         draggable: true
-      })
+   function handlePassInitiative() {
+      socket.emit(
+         'pass',
+         {
+            token: cookies.jwt,
+            characterName: initiatives[currentTurnCharacter].characterName
+         }
+      )
    }
+      
 
    useEffect(() => {
       socket.on('connect', () => {
@@ -93,6 +93,27 @@ const DM: NextPage = () => {
          setInitiatives(newInitiatives)
       })
    }, [socket])
+
+   useEffect(() => {
+      for (let i = 0; i < initiatives.length; i++) {
+         if (i === initiatives.length-1) {
+            return setCurrentTurnCharacter(0)
+         } else if (initiatives[i].is_turn) {
+            return setCurrentTurnCharacter(i+1)
+         }
+      }
+   }, [initiatives])
+
+   function emitError(message: string) {
+      toast.error(message, {
+         position: 'bottom-right',
+         autoClose: 2000,
+         hideProgressBar: true,
+         closeOnClick: true,
+         pauseOnHover: true,
+         draggable: true
+      })
+   }
 
    return (
       <>
@@ -128,13 +149,13 @@ const DM: NextPage = () => {
 
             <div className="fixed w-full h-16 sm:h-[88px] sm:pb-7 flex justify-center items-center bottom-0 bg-slate-600 sm:bg-transparent">
                <div className="h-full w-full sm:max-w-min px-4 flex justify-around items-center gap-5 sm:bg-slate-600 rounded-full sm:shadow-lg">
-                  <button>
+                  <button onClick={() => socket.emit('clear', { token: cookies.jwt })}>
                      <Eraser size={42} color="#e5e7eb" weight="fill" className="hover:fill-red-400 transition-colors duration-100 ease-linear" />
                   </button>
 
                   <DmRoller />
 
-                  <button>
+                  <button onClick={() => handlePassInitiative()}>
                      <ArrowFatLineRight size={42} color="#e5e7eb" weight="fill" className="hover:fill-blue-400 transition-colors duration-100 ease-linear" />
                   </button>
                </div>
