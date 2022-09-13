@@ -47,7 +47,7 @@ export class InitiativeGateway implements OnGatewayConnection {
    }
 
    @SubscribeMessage('roll')
-   async handleRequestInitiatives(@MessageBody() rollDto: RollDto) {
+   async handleRollInitiative(@MessageBody() rollDto: RollDto) {
       const jwtDecodedData = this.jwtService.decode(rollDto.token)
       const jwtDecodedObject = jwtDecodedData as JwtData
 
