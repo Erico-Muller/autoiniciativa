@@ -158,7 +158,7 @@ const DM: NextPage = () => {
                      <Eraser size={42} color="#e5e7eb" weight="fill" className="hover:fill-red-400 transition-colors duration-100 ease-linear" />
                   </button>
 
-                  <DmRoller />
+                  <DmRoller socket={socket} />
 
                   <button onClick={() => handlePassInitiative()}>
                      <ArrowFatLineRight size={42} color="#e5e7eb" weight="fill" className="hover:fill-blue-400 transition-colors duration-100 ease-linear" />

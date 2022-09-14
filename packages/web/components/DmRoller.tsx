@@ -1,11 +1,20 @@
 import { useState, useRef, FormEvent } from 'react'
+import { useCookies } from 'react-cookie'
 
 import * as Dialog from '@radix-ui/react-dialog'
 import { Plus, Minus } from 'phosphor-react'
 
 import { toast } from 'react-toastify'
 
-const DmRoller = () => {
+import { Socket } from 'socket.io-client'
+
+interface Props {
+   socket: Socket
+}
+
+const DmRoller = ({ socket }: Props) => {
+   const [cookies] = useCookies(['jwt'])
+
    const inputNameRef = useRef<HTMLInputElement>(null)
    const [mod, setMod] = useState<number | null>(null)
    const [modSelected, setModSelected] = useState(false)
@@ -21,7 +30,8 @@ const DmRoller = () => {
       else if (mod === null)
          return emitError('Insira o modificador do(s) inimigos(s)')
 
-      const player = {
+      const rollData = {
+         token: cookies.jwt,
          name: inputNameRef.current.value,
          mod,
          quantity: quantity || 1
@@ -29,7 +39,7 @@ const DmRoller = () => {
 
       setRolled(true)
 
-      console.log(player)
+      socket.emit('roll-many', rollData)
    }
 
    function handleIncrementMod() {
