@@ -6,6 +6,8 @@ import {
    character as Character,
 } from '@prisma/client'
 
+import { RollManyDto } from './dto/roll-many.dto'
+
 @Injectable()
 export class InitiativeService {
    constructor(private readonly prismaService: PrismaService) {}
@@ -30,6 +32,46 @@ export class InitiativeService {
             is_critical: initiative === 20,
             is_turn: false,
          },
+      })
+   }
+
+   async createMany(rollManyDto: RollManyDto): Promise<void> {
+      function rollDice() {
+         const min = Math.ceil(21)
+         const max = Math.floor(1)
+
+         return Math.floor(Math.random() * (max - min)) + min
+      }
+
+      const existingInitiatives = await this.prismaService.initiative.findMany({
+         where: {
+            characterName: {
+               startsWith: rollManyDto.name,
+            },
+         },
+      })
+
+      const nameIdMod = existingInitiatives ? existingInitiatives.length : 0
+
+      const newInitiatives = []
+      for (let i = 1; i <= rollManyDto.quantity; i++) {
+         const diceRes = rollDice()
+
+         const initiative = {
+            characterName:
+               rollManyDto.quantity === 1 && existingInitiatives.length === 0
+                  ? rollManyDto.name
+                  : `${rollManyDto.name} ${i + nameIdMod}`,
+            initiative: diceRes + rollManyDto.mod,
+            is_critical: diceRes === 20 ? true : false,
+            is_turn: false,
+         }
+
+         newInitiatives.push(initiative)
+      }
+
+      await this.prismaService.initiative.createMany({
+         data: newInitiatives,
       })
    }
 

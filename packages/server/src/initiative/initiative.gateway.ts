@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from 'socket.io'
 
 import { RollDto } from './dto/roll.dto'
+import { RollManyDto } from './dto/roll-many.dto'
 import { PassDto } from './dto/pass.dto'
 import { ClearDto } from './dto/clear.dto'
 
@@ -59,6 +60,20 @@ export class InitiativeGateway implements OnGatewayConnection {
       }
 
       await this.initiativeService.create(character, rollDto.initiative)
+
+      this.server
+         .to('game')
+         .emit('receive_initiatives', await this.initiativeService.findAll())
+   }
+
+   @SubscribeMessage('roll-many')
+   async handleRollManyInitiatives(@MessageBody() rollManyDto: RollManyDto) {
+      const jwtDecodedData = this.jwtService.decode(rollManyDto.token)
+      const jwtDecodedObject = jwtDecodedData as JwtData
+
+      if (jwtDecodedObject.role !== Role.DM) return
+
+      await this.initiativeService.createMany(rollManyDto)
 
       this.server
          .to('game')
