@@ -7,6 +7,7 @@ import {
 } from '@prisma/client'
 
 import { RollManyDto } from './dto/roll-many.dto'
+import { KillDto } from './dto/kill.dto'
 
 @Injectable()
 export class InitiativeService {
@@ -97,5 +98,13 @@ export class InitiativeService {
 
    async clear(): Promise<void> {
       await this.prismaService.initiative.deleteMany()
+   }
+
+   async kill(killDto: KillDto): Promise<void> {
+      await this.prismaService.initiative.delete({
+         where: {
+            characterName: killDto.characterName,
+         },
+      })
    }
 }

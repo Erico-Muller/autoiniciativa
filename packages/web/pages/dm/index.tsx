@@ -145,7 +145,7 @@ const DM: NextPage = () => {
                      <span className="text-lg">Aguardando iniciativas...</span> :
 
                      initiatives.map(initiative => (
-                        <Initiative variant='dm' key={initiative.characterName} initiative={initiative.initiative} isTurn={initiative.is_turn} isCritical={initiative.is_critical}>
+                        <Initiative variant='dm' socket={socket} key={initiative.characterName} initiative={initiative.initiative} isTurn={initiative.is_turn} isCritical={initiative.is_critical}>
                            {initiative.characterName}
                         </Initiative>
                      ))
