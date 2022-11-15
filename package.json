@@ -3,6 +3,10 @@
    "version": "1.0.0",
    "main": "index.js",
    "private": true,
+   "scripts": {
+     "build:server": "cd packages/server && npm run build",
+     "start:server": "cd packages/server && npm run start"
+   },
    "workspaces": {
       "packages": [
          "packages/*",
